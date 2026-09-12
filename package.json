@@ -1,0 +1,17 @@
+{
+  "name": "ivy-assignment",
+  "version": "1.0.0",
+  "description": "Ivy Homes Property API Take-Home Assignment",
+  "type": "module",
+  "scripts": {
+    "probe": "node scripts/probe.mjs",
+    "fetch": "node scripts/fetchAll.mjs",
+    "analyze": "node scripts/analyze.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7"
+  }
+}
