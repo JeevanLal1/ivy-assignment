@@ -26,21 +26,35 @@ A full-stack property application and API audit for Ivy Homes (September 2026).
    - `DEMO_PASSWORD=<password-from-email>`
    - `ASSIGNED_CITY=Pune`
    - `ASSIGNED_LOCALITY=Magarpatta`
+   - `VITE_API_URL=https://solve.ivy.homes`
+   - `VITE_API_KEY=IVY26-XXXXXXXXXXXX`
 
 ### Scripts
-- Run unit tests:
+- **Frontend Development Server**:
+  ```bash
+  npm run dev
+  ```
+- **Build Frontend Production Bundle**:
+  ```bash
+  npm run build
+  ```
+- **Preview Production Build**:
+  ```bash
+  npm run preview
+  ```
+- **Run Unit & Integration Tests**:
   ```bash
   npm test
   ```
-- Run controlled API probe:
+- **Run Controlled API Probe (Phase 1)**:
   ```bash
   npm run probe
   ```
-- Fetch complete datasets (Phase 2):
+- **Fetch Complete Datasets (Phase 2)**:
   ```bash
   npm run fetch
   ```
-- Run data analysis and generate answers (Phase 3):
+- **Run Data Analysis & Answer Generation (Phase 3)**:
   ```bash
   npm run analyze
   ```
@@ -229,6 +243,18 @@ A full-stack property application and API audit for Ivy Homes (September 2026).
 
 ---
 
-## 3. Tooling & Disclosures
-- Built with Node.js built-in `fetch`, `node:test`, and ESM scripts.
-- LLM assistance used for rapid hypothesis formulation, testing, and script scaffolding.
+## 3. Frontend Architecture & Features
+- **Core Stack**: React 19, Vite 8, Tailwind CSS, React Router 7.
+- **Key Modules**:
+  - **Authentication & Persistence**: Automatic proactive token renewal against `POST /auth/refresh` prior to 15-minute expiry, localStorage persistence, and 401 request retry interceptor.
+  - **Listings Browser**: Offset pagination (`limit <= 50`), live filtering by 10 Pune localities, BHK, price range, furnishing, and property type.
+  - **Direct URL Detail Page**: Deep-linking at `/listings/:id` with client-side multi-factor similarity ranking.
+  - **Synchronized Saved Shortlist**: Unified React Context (`SavedContext`) synchronized with live `GET/POST/DELETE /v1/saved` endpoints.
+  - **Rentals & Projects**: Real estate browsers implementing verified rental deposit multiplier conversion (2–10x monthly rent) and project price scale detection (< 10 Cr vs >= 10 Lakhs).
+  - **Insights Dashboard**: Comprehensive metrics, 28-record corrupt breakdown, 205-listing syndicate analysis, and 95-project mismatch audit.
+
+---
+
+## 4. Tooling & AI Disclosure
+- **Tooling**: Built with Node.js native `fetch`, `node:test`, and native ESM scripts.
+- **AI/LLM Disclosure**: AI assistance was used during development for code scaffolding, debugging, and implementation support. API behavior was independently probed and validated against the running Ivy Homes API, and the submitted answers/findings were derived from reproducible analysis.
