@@ -6,6 +6,7 @@ import { Navbar } from './components/Navbar.jsx';
 import { LoginPage } from './pages/LoginPage.jsx';
 
 import { ListingsPage } from './pages/ListingsPage.jsx';
+import { ListingDetailPage } from './pages/ListingDetailPage.jsx';
 
 function AppLayout() {
   return (
@@ -53,7 +54,7 @@ export function App() {
           >
             <Route path="/" element={<Navigate to="/listings" replace />} />
             <Route path="/listings" element={<ListingsPage />} />
-            <Route path="/listings/:id" element={<WelcomePlaceholder title="Listing Detail View" />} />
+            <Route path="/listings/:id" element={<ListingDetailPage />} />
             <Route path="/saved" element={<WelcomePlaceholder title="Saved Properties" />} />
             <Route path="/rentals" element={<WelcomePlaceholder title="Pune Rentals Browser" />} />
             <Route path="/projects" element={<WelcomePlaceholder title="Pune Projects Browser" />} />
