@@ -2,14 +2,28 @@ import { apiRequest } from './api.js';
 
 export const savedService = {
   /**
-   * Fetch all saved listings for the authenticated user.
+   * Fetch all saved listings with count and results.
    * GET /v1/saved -> returns { count, results }
+   * 
+   * @returns {Promise<{ count: number, results: Array<object> }>}
+   */
+  async getSaved() {
+    const data = await apiRequest('/v1/saved', { method: 'GET' });
+    return {
+      count: typeof data?.count === 'number' ? data.count : (data?.results?.length || 0),
+      results: Array.isArray(data?.results) ? data.results : [],
+    };
+  },
+
+  /**
+   * Fetch all saved listings for the authenticated user.
+   * Backwards-compatible helper returning results array directly.
    * 
    * @returns {Promise<Array<object>>}
    */
   async getSavedListings() {
-    const data = await apiRequest('/v1/saved', { method: 'GET' });
-    return data?.results || [];
+    const data = await this.getSaved();
+    return data.results;
   },
 
   /**

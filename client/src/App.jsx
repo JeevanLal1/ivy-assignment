@@ -1,12 +1,14 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
+import { SavedProvider } from './context/SavedContext.jsx';
 import { ProtectedRoute } from './components/ProtectedRoute.jsx';
 import { Navbar } from './components/Navbar.jsx';
 import { LoginPage } from './pages/LoginPage.jsx';
 
 import { ListingsPage } from './pages/ListingsPage.jsx';
 import { ListingDetailPage } from './pages/ListingDetailPage.jsx';
+import { SavedPage } from './pages/SavedPage.jsx';
 
 function AppLayout() {
   return (
@@ -40,31 +42,33 @@ function WelcomePlaceholder({ title = "Feature Coming Soon" }) {
 export function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
+      <SavedProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
 
-          {/* Protected Application Routes */}
-          <Route
-            element={
-              <ProtectedRoute>
-                <AppLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route path="/" element={<Navigate to="/listings" replace />} />
-            <Route path="/listings" element={<ListingsPage />} />
-            <Route path="/listings/:id" element={<ListingDetailPage />} />
-            <Route path="/saved" element={<WelcomePlaceholder title="Saved Properties" />} />
-            <Route path="/rentals" element={<WelcomePlaceholder title="Pune Rentals Browser" />} />
-            <Route path="/projects" element={<WelcomePlaceholder title="Pune Projects Browser" />} />
-            <Route path="/insights" element={<WelcomePlaceholder title="Market Data Insights & Audit" />} />
-          </Route>
+            {/* Protected Application Routes */}
+            <Route
+              element={
+                <ProtectedRoute>
+                  <AppLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route path="/" element={<Navigate to="/listings" replace />} />
+              <Route path="/listings" element={<ListingsPage />} />
+              <Route path="/listings/:id" element={<ListingDetailPage />} />
+              <Route path="/saved" element={<SavedPage />} />
+              <Route path="/rentals" element={<WelcomePlaceholder title="Pune Rentals Browser" />} />
+              <Route path="/projects" element={<WelcomePlaceholder title="Pune Projects Browser" />} />
+              <Route path="/insights" element={<WelcomePlaceholder title="Market Data Insights & Audit" />} />
+            </Route>
 
-          {/* Catch-all */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
+            {/* Catch-all */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </SavedProvider>
     </AuthProvider>
   );
 }

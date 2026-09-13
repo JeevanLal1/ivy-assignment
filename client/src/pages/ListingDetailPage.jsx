@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { listingsService } from '../services/listings.js';
-import { savedService } from '../services/saved.js';
+import { useSaved } from '../context/SavedContext.jsx';
 import { ListingCard } from '../components/ListingCard.jsx';
 import { formatPrice, formatArea, formatTitleCase, formatPortalName } from '../utils/format.js';
 import { findSimilarListings } from '../utils/similarity.js';
@@ -10,6 +10,7 @@ import { parseTimestamp } from '../../../shared/date-utils.mjs';
 export function ListingDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { isSaved, isSaving, toggleSave } = useSaved();
 
   const [listing, setListing] = useState(null);
   const [similarListings, setSimilarListings] = useState([]);
@@ -17,33 +18,6 @@ export function ListingDetailPage() {
   const [isLoadingSimilar, setIsLoadingSimilar] = useState(false);
   const [error, setError] = useState(null);
   const [notFound, setNotFound] = useState(false);
-
-  const [isSaved, setIsSaved] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [savedIds, setSavedIds] = useState(new Set());
-
-  // 1. Fetch user saved list
-  useEffect(() => {
-    let isMounted = true;
-    savedService
-      .getSavedListings()
-      .then((saved) => {
-        if (isMounted && Array.isArray(saved)) {
-          const ids = new Set(saved.map((r) => r.listing_id || r.id).filter(Boolean));
-          setSavedIds(ids);
-          if (id) {
-            setIsSaved(ids.has(id));
-          }
-        }
-      })
-      .catch((err) => {
-        console.warn('Failed to load saved state:', err.message);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [id]);
 
   // 2. Fetch listing detail
   const loadListingDetail = useCallback(async () => {
@@ -92,62 +66,12 @@ export function ListingDetailPage() {
   }, [loadListingDetail]);
 
   // Toggle Save handler for current listing
-  const handleToggleCurrentSave = async () => {
-    if (!listing || isSaving) return;
+  const isCurrentSaved = isSaved(id);
+  const isCurrentSaving = isSaving(id);
 
-    const nextState = !isSaved;
-    setIsSaving(true);
-    setIsSaved(nextState);
-
-    try {
-      if (nextState) {
-        await savedService.saveListing(listing.listing_id);
-        setSavedIds((prev) => new Set([...prev, listing.listing_id]));
-      } else {
-        await savedService.removeListing(listing.listing_id);
-        setSavedIds((prev) => {
-          const next = new Set(prev);
-          next.delete(listing.listing_id);
-          return next;
-        });
-      }
-    } catch (err) {
-      console.error('Save toggle error:', err);
-      // Rollback on failure
-      setIsSaved(!nextState);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  // Toggle Save handler for similar listing cards
-  const handleToggleSimilarSave = async (similarId) => {
-    if (!similarId) return;
-    const isCurrentlySaved = savedIds.has(similarId);
-
-    setSavedIds((prev) => {
-      const next = new Set(prev);
-      if (isCurrentlySaved) next.delete(similarId);
-      else next.add(similarId);
-      return next;
-    });
-
-    try {
-      if (isCurrentlySaved) {
-        await savedService.removeListing(similarId);
-      } else {
-        await savedService.saveListing(similarId);
-      }
-    } catch (err) {
-      console.error('Similar listing save toggle error:', err);
-      // Rollback
-      setSavedIds((prev) => {
-        const next = new Set(prev);
-        if (isCurrentlySaved) next.add(similarId);
-        else next.delete(similarId);
-        return next;
-      });
-    }
+  const handleToggleCurrentSave = () => {
+    if (!listing) return;
+    toggleSave(listing);
   };
 
   // 404 Not Found State
@@ -256,19 +180,19 @@ export function ListingDetailPage() {
           <span className="text-xs text-slate-400 font-mono hidden sm:inline">ID: {listing.listing_id}</span>
           <button
             type="button"
-            disabled={isSaving}
+            disabled={isCurrentSaving}
             onClick={handleToggleCurrentSave}
             className={`px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 transition-colors shadow-sm disabled:opacity-50 ${
-              isSaved
+              isCurrentSaved
                 ? 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
                 : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
             }`}
           >
-            {isSaving ? (
+            {isCurrentSaving ? (
               <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
             ) : (
               <svg
-                className={`w-4 h-4 ${isSaved ? 'text-rose-600 fill-rose-600' : 'text-slate-500 fill-transparent'}`}
+                className={`w-4 h-4 ${isCurrentSaved ? 'text-rose-600 fill-rose-600' : 'text-slate-500 fill-transparent'}`}
                 viewBox="0 0 24 24"
                 stroke="currentColor"
                 strokeWidth="2"
@@ -280,7 +204,7 @@ export function ListingDetailPage() {
                 />
               </svg>
             )}
-            <span>{isSaved ? 'Saved to Favorites' : 'Save Property'}</span>
+            <span>{isCurrentSaved ? 'Saved to Favorites' : 'Save Property'}</span>
           </button>
         </div>
       </div>
@@ -509,8 +433,9 @@ export function ListingDetailPage() {
               <ListingCard
                 key={sim.listing_id}
                 listing={sim}
-                isSaved={savedIds.has(sim.listing_id)}
-                onToggleSave={handleToggleSimilarSave}
+                isSaved={isSaved(sim.listing_id)}
+                onToggleSave={() => toggleSave(sim)}
+                isSaving={isSaving(sim.listing_id)}
               />
             ))}
           </div>

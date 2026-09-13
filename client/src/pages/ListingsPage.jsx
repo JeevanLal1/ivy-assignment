@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { listingsService } from '../services/listings.js';
-import { savedService } from '../services/saved.js';
+import { useSaved } from '../context/SavedContext.jsx';
 import { ListingCard } from '../components/ListingCard.jsx';
 import { ListingFilters } from '../components/ListingFilters.jsx';
 
@@ -15,6 +15,8 @@ const DEFAULT_FILTERS = {
 };
 
 export function ListingsPage() {
+  const { isSaved, isSaving, toggleSave } = useSaved();
+
   const [listings, setListings] = useState([]);
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
@@ -24,30 +26,7 @@ export function ListingsPage() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState(null);
 
-  const [savedIds, setSavedIds] = useState(new Set());
-  const [savingId, setSavingId] = useState(null);
-
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
-
-  // 1. Load initial saved IDs for the current user
-  useEffect(() => {
-    let isMounted = true;
-    savedService
-      .getSavedListings()
-      .then((saved) => {
-        if (isMounted && Array.isArray(saved)) {
-          const ids = new Set(saved.map((r) => r.listing_id || r.id).filter(Boolean));
-          setSavedIds(ids);
-        }
-      })
-      .catch((err) => {
-        console.warn('Failed to load saved listings:', err.message);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   // 2. Fetch listings function
   const fetchListingsData = useCallback(
@@ -101,41 +80,6 @@ export function ListingsPage() {
   const handleLoadMore = () => {
     if (!isLoadingMore && hasMore) {
       fetchListingsData(offset + 50, false);
-    }
-  };
-
-  // Toggle Save handler
-  const handleToggleSave = async (listingId) => {
-    if (!listingId || savingId) return;
-
-    const isCurrentlySaved = savedIds.has(listingId);
-    setSavingId(listingId);
-
-    // Optimistic UI update
-    setSavedIds((prev) => {
-      const next = new Set(prev);
-      if (isCurrentlySaved) next.delete(listingId);
-      else next.add(listingId);
-      return next;
-    });
-
-    try {
-      if (isCurrentlySaved) {
-        await savedService.removeListing(listingId);
-      } else {
-        await savedService.saveListing(listingId);
-      }
-    } catch (err) {
-      console.error('Save toggle error:', err);
-      // Revert optimistic update on failure
-      setSavedIds((prev) => {
-        const next = new Set(prev);
-        if (isCurrentlySaved) next.add(listingId);
-        else next.delete(listingId);
-        return next;
-      });
-    } finally {
-      setSavingId(null);
     }
   };
 
@@ -243,9 +187,9 @@ export function ListingsPage() {
             <ListingCard
               key={listing.listing_id}
               listing={listing}
-              isSaved={savedIds.has(listing.listing_id)}
-              onToggleSave={handleToggleSave}
-              isSaving={savingId === listing.listing_id}
+              isSaved={isSaved(listing.listing_id)}
+              onToggleSave={() => toggleSave(listing)}
+              isSaving={isSaving(listing.listing_id)}
             />
           ))}
         </div>
