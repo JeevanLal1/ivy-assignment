@@ -6,7 +6,8 @@
   "scripts": {
     "probe": "node scripts/probe.mjs",
     "fetch": "node scripts/fetchAll.mjs",
-    "analyze": "node scripts/analyze.mjs"
+    "analyze": "node scripts/analyze.mjs",
+    "test": "node --test tests/**/*.test.mjs"
   },
   "engines": {
     "node": ">=20"

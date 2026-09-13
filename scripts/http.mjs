@@ -1,4 +1,4 @@
-import { BASE_URL } from './env.mjs';
+import { BASE_URL, API_KEY } from './env.mjs';
 
 /**
  * Generic HTTP request helper
@@ -9,9 +9,11 @@ import { BASE_URL } from './env.mjs';
  * @param {Record<string, any>|URLSearchParams} [options.query] - Query parameters
  * @param {any} [options.body] - Request body (automatically serialized to JSON if object)
  * @param {HeadersInit} [options.headers={}] - HTTP headers
+ * @param {boolean|string} [options.apiKey=true] - Whether to send X-API-Key header (true sends API_KEY from env)
+ * @param {string} [options.token] - Bearer token for authenticated user session
  * @returns {Promise<{ status: number, headers: Headers, json: any, text: string }>}
  */
-export async function request(path, { method = 'GET', query, body, headers = {} } = {}) {
+export async function request(path, { method = 'GET', query, body, headers = {}, apiKey = true, token } = {}) {
   const base = BASE_URL ? (BASE_URL.endsWith('/') ? BASE_URL : `${BASE_URL}/`) : 'https://solve.ivy.homes/';
   const normalizedPath = path.startsWith('/') ? path.slice(1) : path;
   const url = new URL(normalizedPath, base);
@@ -31,6 +33,18 @@ export async function request(path, { method = 'GET', query, body, headers = {} 
   }
 
   const reqHeaders = new Headers(headers);
+
+  if (apiKey) {
+    const keyToUse = typeof apiKey === 'string' ? apiKey : API_KEY;
+    if (keyToUse) {
+      reqHeaders.set('X-API-Key', keyToUse);
+    }
+  }
+
+  if (token) {
+    reqHeaders.set('Authorization', `Bearer ${token}`);
+  }
+
   let reqBody = body;
 
   if (body !== undefined && body !== null) {
