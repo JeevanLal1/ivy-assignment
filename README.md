@@ -2,6 +2,9 @@
 
 A full-stack property application and API audit for Ivy Homes (September 2026).
 
+- **GitHub Repository**: [https://github.com/JeevanLal1/ivy-assignment](https://github.com/JeevanLal1/ivy-assignment)
+- **Live Demo**: [https://ivy-assignment-seven.vercel.app/](https://ivy-assignment-seven.vercel.app/)
+
 ---
 
 ## 1. Setup and How to Run
