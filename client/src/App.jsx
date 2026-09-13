@@ -11,6 +11,7 @@ import { ListingDetailPage } from './pages/ListingDetailPage.jsx';
 import { SavedPage } from './pages/SavedPage.jsx';
 import { RentalsPage } from './pages/RentalsPage.jsx';
 import { ProjectsPage } from './pages/ProjectsPage.jsx';
+import { InsightsPage } from './pages/InsightsPage.jsx';
 
 function AppLayout() {
   return (
@@ -63,7 +64,7 @@ export function App() {
               <Route path="/saved" element={<SavedPage />} />
               <Route path="/rentals" element={<RentalsPage />} />
               <Route path="/projects" element={<ProjectsPage />} />
-              <Route path="/insights" element={<WelcomePlaceholder title="Market Data Insights & Audit" />} />
+              <Route path="/insights" element={<InsightsPage />} />
             </Route>
 
             {/* Catch-all */}
