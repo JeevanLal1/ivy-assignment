@@ -247,7 +247,7 @@ async function main() {
   // ==============================================================
   // 6. BUILD CONFIRMED FINDINGS & SUBMISSION.JSON
   // ==============================================================
-  const apiKey = process.env.API_KEY || 'IVY26-B7BFA9169A40';
+  const apiKey = process.env.API_KEY || 'your_ivy_api_key_here';
 
   const findings = [
     {
@@ -427,13 +427,14 @@ async function main() {
     }
   ];
 
-  // Preserve existing candidate fields if submission.json already exists
+  // Preserve existing candidate and api_key fields if submission.json already exists
   let existingCandidate = {
     name: "",
     email: "",
     repo_url: "",
     demo_url: ""
   };
+  let effectiveApiKey = process.env.API_KEY;
 
   const submissionPath = path.resolve(rootDir, 'submission.json');
   try {
@@ -442,12 +443,15 @@ async function main() {
     if (parsed.candidate) {
       existingCandidate = { ...existingCandidate, ...parsed.candidate };
     }
+    if (!effectiveApiKey && parsed.api_key) {
+      effectiveApiKey = parsed.api_key;
+    }
   } catch {
     // submission.json doesn't exist yet, proceed with placeholders
   }
 
   const submissionContent = {
-    api_key: apiKey,
+    api_key: effectiveApiKey || 'your_ivy_api_key_here',
     candidate: existingCandidate,
     answers: {
       total_listing_records,

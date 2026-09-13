@@ -24,13 +24,13 @@ A full-stack property application and API audit for Ivy Homes (September 2026).
    ```
 3. Populate `.env` with your assigned credentials:
    - `BASE_URL=https://solve.ivy.homes`
-   - `API_KEY=IVY26-XXXXXXXXXXXX`
-   - `DEMO_EMAIL=demo1@ivy.homes`
-   - `DEMO_PASSWORD=<password-from-email>`
+   - `API_KEY=your_ivy_api_key_here`
+   - `DEMO_EMAIL=your_demo_email_here`
+   - `DEMO_PASSWORD=your_demo_password_here`
    - `ASSIGNED_CITY=Pune`
    - `ASSIGNED_LOCALITY=Magarpatta`
    - `VITE_API_URL=https://solve.ivy.homes`
-   - `VITE_API_KEY=IVY26-XXXXXXXXXXXX`
+   - `VITE_API_KEY=your_ivy_api_key_here`
 
 ### Scripts
 - **Frontend Development Server**:
