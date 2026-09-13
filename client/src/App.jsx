@@ -9,6 +9,8 @@ import { LoginPage } from './pages/LoginPage.jsx';
 import { ListingsPage } from './pages/ListingsPage.jsx';
 import { ListingDetailPage } from './pages/ListingDetailPage.jsx';
 import { SavedPage } from './pages/SavedPage.jsx';
+import { RentalsPage } from './pages/RentalsPage.jsx';
+import { ProjectsPage } from './pages/ProjectsPage.jsx';
 
 function AppLayout() {
   return (
@@ -59,8 +61,8 @@ export function App() {
               <Route path="/listings" element={<ListingsPage />} />
               <Route path="/listings/:id" element={<ListingDetailPage />} />
               <Route path="/saved" element={<SavedPage />} />
-              <Route path="/rentals" element={<WelcomePlaceholder title="Pune Rentals Browser" />} />
-              <Route path="/projects" element={<WelcomePlaceholder title="Pune Projects Browser" />} />
+              <Route path="/rentals" element={<RentalsPage />} />
+              <Route path="/projects" element={<ProjectsPage />} />
               <Route path="/insights" element={<WelcomePlaceholder title="Market Data Insights & Audit" />} />
             </Route>
 
