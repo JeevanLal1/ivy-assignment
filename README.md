@@ -161,6 +161,54 @@ A full-stack property application and API audit for Ivy Homes (September 2026).
 
 
 
+12. **MagicHomes Area Units in Square Meters**
+    - **Endpoint**: `/v1/listings`
+    - **Category**: `units`
+    - **Documented**: "carpet_area and super_built_up_area are in square feet."
+    - **Actual**: On `website === 'magichomes'`, records with `carpet_area < 300` (306 listings) are encoded in square meters (`val * 10.7639` sqft), matching identical cross-portal duplicate listings within 0-16 sqft.
+    - **How found**: Cross-portal identical property matching between MagicHomes and other portals.
+    - **Impact**: Calculating price per sqft without conversion inflates metrics by ~10.76x on those records.
+13. **Rental Deposit Unit Inconsistency**
+    - **Endpoint**: `/v1/rentals`
+    - **Category**: `units`
+    - **Documented**: "deposit is in rupees."
+    - **Actual**: Values `<= 10` (307 records) represent month multipliers (`deposit * monthly_rent`), whereas values `> 10` are absolute INR amounts.
+    - **How found**: Bimodal distribution and clustering of values 1-10 vs 30,000-500,000.
+    - **Impact**: Summing deposits directly mixes multipliers with currency amounts.
+14. **Project `total_listings` Definition and Mismatches**
+    - **Endpoint**: `/v1/projects`
+    - **Category**: `data_integrity`
+    - **Documented**: "total_listings reports how many listings belong to this project."
+    - **Actual**: Represents live linked listings (`is_live === true`). On 95 out of 440 projects, the reported count is incorrect (41 stale zeroes, 48 over-reported phantom counts, 6 under-reported).
+    - **How found**: Full join between projects and listings grouped by `project_id` and `is_live`.
+    - **Impact**: Question 10 answer is exactly 95 projects with wrong listing count.
+
+15. **Objective Physical Impossibilities (Corrupt Listings)**
+    - **Endpoint**: `/v1/listings`
+    - **Category**: `data_quality`
+    - **Documented**: "Listings represent valid physical properties."
+    - **Actual**: Exactly 28 listings describe physical impossibilities: negative price (7), floor > total_floors (7), super < carpet area (7), and swapped coordinates placing properties in the Arctic Ocean (7).
+    - **How found**: Exhaustive field boundary and physical consistency audit.
+    - **Impact**: Must be excluded from market metrics such as avg_price_per_sqft_2bhk.
+16. **Lead-Generation Syndicate Network (Fake Listings)**
+    - **Endpoint**: `/v1/listings`
+    - **Category**: `fraud`
+    - **Documented**: "Listings represent genuine property offers."
+    - **Actual**: 205 listings belong to a coordinated 7-broker syndicate, supported by shared contact numbers, repeated fictitious identities, copied inventory, systematic price undercutting, and corroborating scam-language evidence in 110 records.
+    - **How found**: Graph network analysis of contact numbers, shared broker names, price distributions, and scam language.
+    - **Impact**: Must be excluded from market metrics such as avg_price_per_sqft_2bhk.
+
+### Phase 3B Classification Methodology Summary
+1. **Property Identity (Question 2)**:
+   - **Methodology**: Evaluated multi-signal composite key (`cleanApartmentName(name) | locality | property_type | bedroom | floor | total_floors | facing_direction`) corroborated by normalized carpet area (within ±3% tolerance) and geographic distance (<= 200m).
+   - **Result**: Exactly 520 high-confidence duplicate groups containing 1,090 records (429 cross-portal, 91 same-portal). Yields **3,230 unique physical properties** from 3,800 records.
+2. **Corrupt Listings (Question 4)**:
+   - **Methodology**: Restricted strictly to objective physical impossibilities: negative prices (7), floor exceeding building total (7), super built-up area less than carpet area (7), and swapped geographic coordinates placing properties outside India (7).
+   - **Result**: Exactly **28 core defensible corrupt listing IDs**.
+3. **Fake Listings (Question 9)**:
+   - **Methodology**: Multi-signal corroboration tracking a coordinated 7-broker syndicate network sharing fictitious agency names, systematic price undercutting (~47% below market rate), owner listing replication/undercutting, and corroborating scam-language evidence in 110 records.
+   - **Result**: Exactly **205 syndicate listings** (supported by shared contact numbers, repeated fictitious identities, copied inventory, systematic price undercutting, and corroborating scam-language evidence in 110 records). Isolated micro-price records (< ₹50,000 INR) were rejected from the fake set due to lack of syndicate coordination.
+
 ### Rejected Hypotheses
 - **Hypothesis**: The API key can be passed via query string.
   - *Result*: Rejected. Server responds with 401 and explicitly mandates `X-API-Key` header.
@@ -170,10 +218,14 @@ A full-stack property application and API audit for Ivy Homes (September 2026).
   - *Result*: Rejected. Tokens expire in 15 minutes and `/auth/refresh` exists and works.
 - **Hypothesis**: Pagination is 1-indexed page-based.
   - *Result*: Rejected. The server ignores `page` and uses `offset`.
-
-### Unresolved Questions
-- Exact unit transition threshold for project prices (whether `< 10` is Crores and `>= 10` is Lakhs, or based on specific fields). Full dataset analysis will establish this.
-- Server-side filter effectiveness: whether `locality`, `bhk`, etc. query parameters actually filter the API response or return unfiltered results. Full dataset fetch will allow baseline comparison.
+- **Hypothesis**: Grouping properties merely by apartment name, phone number, or coordinates is sufficient.
+  - *Result*: Rejected. Causes severe over-merging across distinct floors, units, and facing directions.
+- **Hypothesis**: Low price, strange descriptions, or unverified status alone indicate corrupt listings.
+  - *Result*: Rejected. Corruption is strictly reserved for physical impossibilities that cannot exist.
+- **Hypothesis**: High listing count alone or standard negotiation phrases indicate fake listings.
+  - *Result*: Rejected. Verified legitimate property owners frequently use "Urgent sale" or "Price negotiable", and legitimate brokers maintain large portfolios without fraud.
+- **Hypothesis**: Isolated micro-price listings (< ₹50,000 INR) belong to the fake listing syndicate.
+  - *Result*: Rejected. The 7 micro-price listings are not linked to the 7 syndicate phones or agencies, have no duplicate owner matches, and low price alone does not prove fraudulent intent under assignment rules.
 
 ---
 
