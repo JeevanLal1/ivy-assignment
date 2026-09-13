@@ -66,6 +66,7 @@ A full-stack property application and API audit for Ivy Homes (September 2026).
    - Paging operates strictly via `offset` and `limit`.
    - Server limit is capped at 50 records per page (requesting `limit=100` or `limit=200` returns 50).
    - Response metadata schema is `{ limit, offset, count, total, has_more, results }`.
+   - Total records reported: 3643 listings, 1390 rentals, 422 projects (Pune).
 5. **Endpoints Layout**:
    - Documented `GET /v1/listing/{id}` 404s; the actual working endpoint is `GET /v1/listings/{id}` (plural).
    - Documented `GET /v1/listings/{id}/similar` returns 404.
@@ -146,6 +147,17 @@ A full-stack property application and API audit for Ivy Homes (September 2026).
     - **Actual**: Listing timestamps lack `Z` or timezone offsets (e.g. `2026-04-30T14:57:00`).
     - **How found**: Inspected `posted_at` fields across listings.
     - **Impact**: Naive parsing might assume local browser timezone instead of IST.
+11. **Server Metadata `total` Undercounts Retrievable Records**
+    - **Endpoint**: `/v1/listings`, `/v1/rentals`, `/v1/projects`
+    - **Category**: `completeness`
+    - **Documented**: "total is the exact number of records matching your filters. To fetch every record, read total, divide by your limit, and request that many pages."
+    - **Actual**: The `total` metadata field under-reports actual retrievable records across all three collections:
+      - Listings: reported `total=3643`, but actual retrievable is `3800` (+157 records).
+      - Rentals: reported `total=1390`, but actual retrievable is `1450` (+60 records).
+      - Projects: reported `total=422`, but actual retrievable is `440` (+18 records).
+    - **How found**: Full retrieval paging until `has_more === false` and verified boundary offsets.
+    - **Impact**: Stopping retrieval when `offset >= total` truncates valid dataset records. Clients must paginate until `has_more === false`.
+
 
 
 
